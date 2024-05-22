@@ -1,0 +1,112 @@
+﻿@page "/slide"
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
+
+
+<div class="container configMaster">
+    <div class="config flex-wrap col-10">
+        <div class="carroselClass">
+            <CarrosselCard></CarrosselCard>
+        </div>
+        <div class="col-md-4 col-lg-5 margem">
+            <div>
+                <label for="customRange1" class="form-label">Horas: @ValueHoras</label>
+                <input type="range" class="form-range" min="0" max="24" id="customRange1" @oninput="UpdateSliderValueHoras" value="@ValueHoras">
+
+                <label for="customRange2" class="form-label">Minutos: @ValueMinutos</label>
+                <input type="range" class="form-range" min="0" max="60" id="customRange2" @oninput="UpdateSliderValueMinutos" value="@ValueMinutos">
+
+                <label for="customRange3" class="form-label">Segundos: @ValueSegundos</label>
+                <input type="range" class="form-range" min="0" max="60" id="customRange3" @oninput="UpdateSliderValueSegundos" value="@ValueSegundos">
+
+                <label for="customRange3" class="form-label">@NomeAcao</label>
+                <input type="range" class="form-range" min="1" max="2" id="customRange4" @oninput="AcaoRadio" value="@radio">
+            </div>
+            <a class=" btn btn-primary" @onclick="AcaoBotao">Shutdown!</a>
+        </div>
+    </div>
+</div>
+
+
+@code {
+    private int radio;
+    private int ValueHoras;
+    private int ValueMinutos;
+    private int ValueSegundos;
+    private string NomeAcao;
+
+    protected override void OnInitialized()
+    {
+        radio = UserService.acao;
+        ValueHoras = UserService.ValueHoras;
+        ValueMinutos = UserService.ValueMinutos;
+        ValueSegundos = UserService.ValueSegundos;
+        AjustaNomeAcao(radio);
+    }
+
+    void AcaoBotao()
+    {
+        UserService.acao = radio;
+        UserService.ValueHoras = ValueHoras;
+        UserService.ValueMinutos = ValueMinutos;
+        UserService.ValueSegundos = ValueSegundos;
+        GetActiveSlide();
+
+        NavigationManager.NavigateTo("/");
+    }
+
+    void AcaoRadio(ChangeEventArgs e)
+    {
+        radio = Convert.ToInt32(e.Value.ToString());
+        AjustaNomeAcao(radio);
+    }
+
+    void UpdateSliderValueHoras(ChangeEventArgs e)
+    {
+        ValueHoras = Convert.ToInt32(e.Value.ToString());
+    }
+
+    void UpdateSliderValueMinutos(ChangeEventArgs e)
+    {
+        ValueMinutos = Convert.ToInt32(e.Value.ToString());
+    }
+
+    void UpdateSliderValueSegundos(ChangeEventArgs e)
+    {
+        ValueSegundos = Convert.ToInt32(e.Value.ToString());
+    }
+
+    private void AjustaNomeAcao(int acao)
+    {
+        switch (acao)
+        {
+            case 1:
+                NomeAcao = "Desligar";
+                break;
+            case 2:
+                NomeAcao = "Reiniciar";
+                break;
+            default:
+                radio = 1;
+                NomeAcao = "Desligar";
+                break;
+        }
+    }
+
+    private async Task GetActiveSlide()
+    {
+        var activeSlide = await JSRuntime.InvokeAsync<int>("getActiveSlideIndex");
+
+        switch (activeSlide)
+        {
+            case 1:
+            case 2:
+            case 3:
+                UserService.musica = activeSlide;
+                break;
+            default:
+                UserService.musica = 0;
+                break;
+        }
+    }
+}

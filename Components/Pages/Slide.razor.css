@@ -1,0 +1,44 @@
+input[type='range']::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    background-color: rgba(236,102,47); /* Altere para a cor desejada */
+}
+
+input[type='range']::-moz-range-thumb {
+    background-color: rgba(236,102,47); /* Altere para a cor desejada */
+}
+
+input[type='range']::-ms-thumb {
+    background-color: rgba(236,102,47); /* Altere para a cor desejada */
+}
+
+.carroselClass {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.config {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: center;
+}
+
+
+.configMaster {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.margem {
+    margin: 2rem;
+}
+
+.btn {
+    background-color: rgba(236,102,47);
+    border: none;
+    margin-top: 1rem;
+}

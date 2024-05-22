@@ -1,0 +1,155 @@
+﻿@page "/"
+@inject NavigationManager NavigationManager
+@using System.Timers
+@using System.Diagnostics
+
+<div class="homePage col-8">
+    @if (@UserService.ValueHoras == 0 && @UserService.ValueMinutos == 0 && @UserService.ValueSegundos == 0)
+    {
+        <Alerta alerta="Configure primeiro!"></Alerta>
+        NavigationManager.NavigateTo("/config");
+    }
+    else
+    {
+        AtivarTime();
+
+        <p id="title">@frase</p>
+        <h1> @UserService.ValueHoras : @UserService.ValueMinutos : @UserService.ValueSegundos</h1>
+        <audio id="meuAudio" src="@NomeMusica" autoplay loop></audio>
+    }
+
+</div>
+
+@code {
+    public int acao;
+    private string NomeAcao;
+    private static Timer timer;
+    private bool TimeAtivo;
+    private string frase;
+    private int Musica;
+    private string NomeMusica;
+
+
+    protected override void OnInitialized()
+    {
+        Musica = UserService.musica;
+        acao = UserService.acao;
+        AjustaNomeAcao(acao);
+        AjustaMusica(Musica);
+        frase = "seu dispositivo irá " + NomeAcao + " em:";
+    }
+
+    private void AtivarTime()
+    {
+
+        if ((UserService.ValueHoras + UserService.ValueMinutos + UserService.ValueSegundos == 0) || timer == null)
+        {
+            //usado na primeira inicialização
+            timer = new Timer(1000);
+            timer.Elapsed += TimerElapsed;
+            timer.Start();
+        }
+        if (timer != null)
+        {
+            timer.Stop();
+            timer = new Timer(1000);
+            timer.Elapsed += TimerElapsed;
+            timer.Start();
+        }
+    }
+
+    private void TimerElapsed(object sender, ElapsedEventArgs e)
+    {
+        if (UserService.ValueSegundos > 0)
+        {
+            UserService.ValueSegundos--;
+        }
+        else if (UserService.ValueMinutos > 0)
+        {
+            UserService.ValueMinutos--;
+            UserService.ValueSegundos = 59;
+        }
+        else if (UserService.ValueHoras > 0)
+        {
+            UserService.ValueHoras--;
+            UserService.ValueMinutos = 59;
+            UserService.ValueSegundos = 59;
+        }
+        else
+        {
+            timer.Stop();
+            ExecutarAcao(acao);
+        }
+
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void AjustaNomeAcao(int acao)
+    {
+        switch (acao)
+        {
+            case 1:
+                NomeAcao = "desligar";
+                break;
+            case 2:
+                NomeAcao = "reiniciar";
+                break;
+        }
+    }
+
+    private void AjustaMusica(int musica)
+    {
+        NomeMusica = "Audios/";
+        switch (musica)
+        {
+            case 0:
+                NomeMusica = "";
+                break;
+            case 1:
+                NomeMusica = NomeMusica + "lofi.mp3";
+                break;
+            case 2:
+                NomeMusica = NomeMusica + "jazz.mp3";
+                break;
+            case 3:
+                NomeMusica = NomeMusica + "chuva.mp3";
+                break;
+        }
+    }
+
+    private void ExecutarAcao(int acao)
+    {
+
+        switch (acao)
+        {
+            case 1:
+                //desligar
+                frase = "Até mais!!";
+                EnviarCommand("shutdown -s -t 5");
+                break;
+            case 2:
+                //reiniciar
+                frase = "Até mais!!";
+                EnviarCommand("shutdown -r -t 5");
+                break;
+            case 3:
+                //limpar
+                EnviarCommand("shutdown -a");
+                break;
+        }
+    }
+
+    static void EnviarCommand(string command)
+    {
+        var processInfo = new ProcessStartInfo("cmd.exe", "/C " + command)
+            {
+                CreateNoWindow = true,
+                UseShellExecute = false
+            };
+
+        var process = Process.Start(processInfo);
+
+        process.WaitForExit();
+        process.Close();
+    }
+}
